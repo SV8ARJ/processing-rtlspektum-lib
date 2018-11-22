@@ -15,6 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ // Mod 02- SV8ARJ -TAG grg
+ // Added: Parameter for RTL crop to setFrequencyRange()
+ 
 package rtlspektrum;
 
 import org.bridj.*;
@@ -132,7 +135,7 @@ public class Rtlspektrum
 		ms.target_rate(RtlpowerLibrary.DEFAULT_TARGET);
 		ms.boxcar(1);
 		ms.comp_fir_size(0);
-		ms.crop(0.0);
+		ms.crop(0.0);		// grg01 
 		ms.gain(RtlpowerLibrary.AUTO_GAIN);
 		ms.window_fn(Pointer.getPointer(window_callback));
 		ms.smoothing(0);
@@ -143,7 +146,7 @@ public class Rtlspektrum
 	public int openDevice(){
 		int ret = 0;
 		Pointer<Pointer> ppdev = Pointer.pointerToPointer(dev);
-		ret = RtlsdrLibrary.rtlsdr_open(ppdev, 0);
+		ret = RtlsdrLibrary.rtlsdr_open(ppdev, deviceId);
 
 		if(ret >= 0) {
 			dev = ppdev.get();
@@ -154,13 +157,17 @@ public class Rtlspektrum
 		return ret;
 	}
 
-	public void setFrequencyRange(int lower, int upper, int step){
+	public void setFrequencyRange(int lower, int upper, int step, double crop_grg){ // grg01
+		
+		ms.crop(crop_grg); // grg01
 		channel_solve c = new channel_solve();
 
 		c.lower(lower);
 		c.upper(upper);
 		c.bin_spec(step);
-
+		
+		
+		
 		tune_count = RtlpowerLibrary.frequency_range(Pointer.getPointer(ms), tunes, Pointer.getPointer(c), tune_count);
 		RtlpowerLibrary.generate_sine_tables(s_tables, tunes, tune_count);
 
@@ -171,6 +178,7 @@ public class Rtlspektrum
 		for(int i = 0;i<tune_count;i++){
 			tuning_state ts = tunes.get(i);
 			ts.gain(ms.gain());
+			// ts.crop(0.5);	// grg01
 			subbufferShifts[i] = bufferSize;
 			bufferSize += ts.crop_i2() - ts.crop_i1() + 1;
 		}
