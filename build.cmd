@@ -1,2 +1,2 @@
 mvn package
-copyp target/*.jar library/
+copy target/*.jar library/
